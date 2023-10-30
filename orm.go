@@ -63,7 +63,7 @@ func (o *ORM) GetConfig() *Config {
 	return o.cfg
 }
 
-func (o *ORM) Insert(ctx context.Context, model models.Model) (models.Model, error) {
+func (o *ORM) Insert(ctx context.Context, model models.Model) (models.Model, *InsertBuilder[models.Model], error) {
 	return NewInsert(ctx, o, model)
 }
 

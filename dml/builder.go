@@ -66,8 +66,23 @@ func (d *DmlBuilder) Build() (string, error) {
 		queryBuilder.WriteString(" FROM ")
 		queryBuilder.WriteString(d.table)
 
-		// ... rest of your code
+		queryBuilder.WriteString(";")
+
+	case Insert:
+		queryBuilder.WriteString("INSERT INTO ")
+		queryBuilder.WriteString(d.table)
+	case Update:
+		queryBuilder.WriteString("ALTER TABLE ")
+		queryBuilder.WriteString(d.table)
+	case Delete:
+		queryBuilder.WriteString("DELETE FROM ")
+		queryBuilder.WriteString(d.table)
 	}
 
 	return queryBuilder.String(), nil
+}
+
+func (d *DmlBuilder) String() string {
+	response, _ := d.Build()
+	return response
 }

@@ -46,6 +46,7 @@ func TestInsertBuilder(t *testing.T) {
 				Insecure: true,
 			},
 			wantInsertErr: true,
+			model:         nil,
 		},
 		{
 			name: "Basic Insert With Model",
@@ -58,7 +59,9 @@ func TestInsertBuilder(t *testing.T) {
 				Database: "unpack",
 				Insecure: true,
 			},
-			model:         &TestModel{},
+			model: &TestModel{
+				Name: "test",
+			},
 			wantInsertErr: false,
 		},
 	}
@@ -75,7 +78,7 @@ func TestInsertBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(orm)
 
-			record, err := NewInsert(tt.ctx, orm, tt.model)
+			record, builder, err := NewInsert(tt.ctx, orm, tt.model)
 			if tt.wantInsertErr {
 				tAssert.Error(err)
 				return
@@ -83,20 +86,10 @@ func TestInsertBuilder(t *testing.T) {
 
 			tAssert.NoError(err)
 			tAssert.NotNil(record)
+			tAssert.NotNil(builder)
 
-			result, err := orm.Insert(tt.ctx, tt.model)
-			if tt.wantInsertErr {
-				tAssert.Error(err)
-				return
-			}
-
-			dbRecord := result.(*TestModel)
-
-			tAssert.NoError(err)
-			tAssert.NotNil(result)
-
-			fmt.Printf("response: %T \n", record.Name)
-			fmt.Printf("response orm: %T \n", dbRecord.Name)
+			fmt.Println("SQL: ", builder.SQL())
+			fmt.Printf("response: %+v \n", record)
 
 			record.ToMap()
 		})
