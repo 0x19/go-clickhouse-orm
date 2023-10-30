@@ -1,4 +1,4 @@
-# go-clickhouse-model
+# Golang Clickhouse ORM
 Golang CRUD support for ClickhouseDB
 
 
