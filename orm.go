@@ -1,4 +1,4 @@
-package gchm
+package chorm
 
 import (
 	"context"

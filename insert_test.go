@@ -1,4 +1,4 @@
-package gchm
+package chorm
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 type TestModel struct {
 	models.Model
 
-	Name string `gchm:"cn: name"`
+	Name string `chorm:"cn: name"`
 }
 
 func (d *TestModel) TableName() string {

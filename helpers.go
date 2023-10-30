@@ -1,4 +1,4 @@
-package gchm
+package chorm
 
 import "github.com/0x19/go-clickhouse-model/models"
 
