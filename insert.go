@@ -9,10 +9,6 @@ import (
 	"github.com/0x19/go-clickhouse-model/models"
 )
 
-type Modeler interface {
-	models.Model
-}
-
 type InsertBuilder[T models.Model] struct {
 	ctx     context.Context
 	orm     *ORM
