@@ -40,6 +40,11 @@ func (d *DmlBuilder) Select(fields ...interface{}) *DmlBuilder {
 	return d
 }
 
+func (d *DmlBuilder) Fields(fields ...string) *DmlBuilder {
+	d.fields = fields
+	return d
+}
+
 func (d *DmlBuilder) Build() (string, error) {
 	var queryBuilder strings.Builder
 
@@ -69,8 +74,15 @@ func (d *DmlBuilder) Build() (string, error) {
 		queryBuilder.WriteString(";")
 
 	case Insert:
+		if len(d.fields) == 0 {
+			return "", fmt.Errorf("no fields selected for insert")
+		}
+
 		queryBuilder.WriteString("INSERT INTO ")
 		queryBuilder.WriteString(d.table)
+		queryBuilder.WriteString(" (")
+		queryBuilder.WriteString(strings.Join(d.fields, ", "))
+		queryBuilder.WriteString(") VALUES")
 	case Update:
 		queryBuilder.WriteString("ALTER TABLE ")
 		queryBuilder.WriteString(d.table)

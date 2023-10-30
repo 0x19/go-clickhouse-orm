@@ -7,6 +7,7 @@ import (
 
 	"github.com/0x19/go-clickhouse-model/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/vahid-sohrabloo/chconn/v2"
 )
 
 type TestModel struct {
@@ -30,6 +31,7 @@ func TestInsertBuilder(t *testing.T) {
 		name          string
 		ctx           context.Context
 		ormConfig     *Config
+		queryOptions  *chconn.QueryOptions
 		model         *TestModel
 		wantOrmErr    bool
 		wantInsertErr bool
@@ -78,7 +80,7 @@ func TestInsertBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(orm)
 
-			record, builder, err := NewInsert(tt.ctx, orm, tt.model)
+			record, builder, err := NewInsert(tt.ctx, orm, tt.model, tt.queryOptions)
 			if tt.wantInsertErr {
 				tAssert.Error(err)
 				return
@@ -119,7 +121,7 @@ func BenchmarkNewInsert(b *testing.B) {
 	// Benchmark loop
 	b.ResetTimer() // Reset the timer to exclude setup time
 	for i := 0; i < b.N; i++ {
-		_, _, err := NewInsert(ctx, orm, model)
+		_, _, err := NewInsert(ctx, orm, model, nil)
 		if err != nil {
 			b.Fatalf("Failed to insert: %v", err)
 		}

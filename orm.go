@@ -63,8 +63,8 @@ func (o *ORM) GetConfig() *Config {
 	return o.cfg
 }
 
-func (o *ORM) Insert(ctx context.Context, model models.Model) (models.Model, *InsertBuilder[models.Model], error) {
-	return NewInsert(ctx, o, model)
+func (o *ORM) Insert(ctx context.Context, model models.Model, queryOptions *chconn.QueryOptions) (models.Model, *InsertBuilder[models.Model], error) {
+	return NewInsert(ctx, o, model, queryOptions)
 }
 
 func (o *ORM) GetConn() chpool.Pool {

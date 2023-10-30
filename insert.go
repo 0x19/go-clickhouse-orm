@@ -7,6 +7,8 @@ import (
 
 	"github.com/0x19/go-clickhouse-model/dml"
 	"github.com/0x19/go-clickhouse-model/models"
+	"github.com/vahid-sohrabloo/chconn/v2"
+	"github.com/vahid-sohrabloo/chconn/v2/column"
 )
 
 type InsertBuilder[T models.Model] struct {
@@ -20,19 +22,15 @@ func (b *InsertBuilder[T]) Build() (string, error) {
 	return b.builder.Build()
 }
 
-func (b *InsertBuilder[T]) Exec() error {
-	return nil
-}
-
-func (b *InsertBuilder[T]) ExecContext(ctx context.Context) error {
-	return nil
+func (b *InsertBuilder[T]) ExecContext(ctx context.Context, queryOptions *chconn.QueryOptions, columns ...column.ColumnBasic) error {
+	return b.orm.GetConn().InsertWithOption(ctx, b.SQL(), queryOptions, columns...)
 }
 
 func (b *InsertBuilder[T]) SQL() string {
 	return b.builder.String()
 }
 
-func NewInsert[T models.Model](ctx context.Context, orm *ORM, model T) (T, *InsertBuilder[T], error) {
+func NewInsert[T models.Model](ctx context.Context, orm *ORM, model T, queryOptions *chconn.QueryOptions) (T, *InsertBuilder[T], error) {
 	// Check if the underlying value of the interface is nil. Unfortunately, it is a T and we cannot
 	// directly check if it's nil due to type missmatch.
 	{
@@ -49,6 +47,7 @@ func NewInsert[T models.Model](ctx context.Context, orm *ORM, model T) (T, *Inse
 
 	stmtBuilder := dml.NewInsertBuilder()
 	stmtBuilder.Model(model)
+	stmtBuilder.Fields(GetModelKeys(model)...)
 
 	builder := &InsertBuilder[T]{
 		ctx:     ctx,
@@ -57,12 +56,9 @@ func NewInsert[T models.Model](ctx context.Context, orm *ORM, model T) (T, *Inse
 		builder: stmtBuilder,
 	}
 
-	sql, err := stmtBuilder.Build()
-	if err != nil {
+	if err := builder.ExecContext(ctx, queryOptions); err != nil {
 		return model, builder, err
 	}
-
-	_ = sql
 
 	return model, builder, nil
 }
