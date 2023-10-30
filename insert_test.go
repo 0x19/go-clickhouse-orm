@@ -95,3 +95,33 @@ func TestInsertBuilder(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkNewInsert(b *testing.B) {
+	// Setup
+	ctx := context.TODO()
+	ormConfig := &Config{
+		Host:     "localhost",
+		Port:     9000,
+		Username: "default",
+		Password: "local12345",
+		Database: "unpack",
+		Insecure: true,
+	}
+	model := &TestModel{
+		Name: "test",
+	}
+
+	orm, err := NewORM(ctx, ormConfig)
+	if err != nil {
+		b.Fatalf("Failed to create ORM: %v", err)
+	}
+
+	// Benchmark loop
+	b.ResetTimer() // Reset the timer to exclude setup time
+	for i := 0; i < b.N; i++ {
+		_, _, err := NewInsert(ctx, orm, model)
+		if err != nil {
+			b.Fatalf("Failed to insert: %v", err)
+		}
+	}
+}
