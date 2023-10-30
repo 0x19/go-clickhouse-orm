@@ -2,18 +2,27 @@ package gchm
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/0x19/go-clickhouse-model/models"
 	"github.com/stretchr/testify/assert"
 )
 
-type DummyModel struct {
+type TestModel struct {
 	models.Model
+
+	Name string `gchm:"cn: name"`
 }
 
-func (d *DummyModel) TableName() string {
+func (d *TestModel) TableName() string {
 	return "dummy_model"
+}
+
+func (d *TestModel) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"name": d.Name,
+	}
 }
 
 func TestInsertBuilder(t *testing.T) {
@@ -21,7 +30,7 @@ func TestInsertBuilder(t *testing.T) {
 		name          string
 		ctx           context.Context
 		ormConfig     *Config
-		model         models.Model
+		model         *TestModel
 		wantOrmErr    bool
 		wantInsertErr bool
 	}{
@@ -49,7 +58,7 @@ func TestInsertBuilder(t *testing.T) {
 				Database: "unpack",
 				Insecure: true,
 			},
-			model:         &DummyModel{},
+			model:         &TestModel{},
 			wantInsertErr: false,
 		},
 	}
@@ -66,15 +75,30 @@ func TestInsertBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(orm)
 
-			insertBuilder, err := NewInsert(tt.ctx, tt.model)
+			record, err := NewInsert(tt.ctx, orm, tt.model)
 			if tt.wantInsertErr {
 				tAssert.Error(err)
 				return
 			}
 
 			tAssert.NoError(err)
-			tAssert.NotNil(insertBuilder)
+			tAssert.NotNil(record)
 
+			result, err := orm.Insert(tt.ctx, tt.model)
+			if tt.wantInsertErr {
+				tAssert.Error(err)
+				return
+			}
+
+			dbRecord := result.(*TestModel)
+
+			tAssert.NoError(err)
+			tAssert.NotNil(result)
+
+			fmt.Printf("response: %T \n", record.Name)
+			fmt.Printf("response orm: %T \n", dbRecord.Name)
+
+			record.ToMap()
 		})
 	}
 }

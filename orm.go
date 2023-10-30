@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/0x19/go-clickhouse-model/models"
 	"github.com/vahid-sohrabloo/chconn/v2"
 	"github.com/vahid-sohrabloo/chconn/v2/chpool"
 )
@@ -52,6 +53,18 @@ func (o *ORM) Connect() error {
 	o.db = db
 
 	return o.db.Ping(o.ctx)
+}
+
+func (o *ORM) GetContext() context.Context {
+	return o.ctx
+}
+
+func (o *ORM) GetConfig() *Config {
+	return o.cfg
+}
+
+func (o *ORM) Insert(ctx context.Context, model models.Model) (models.Model, error) {
+	return NewInsert(ctx, o, model)
 }
 
 func (o *ORM) GetConn() chpool.Pool {

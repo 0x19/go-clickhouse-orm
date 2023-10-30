@@ -6,10 +6,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type DummyModel struct{}
+type DummyModel struct {
+	Name string
+}
 
 func (d *DummyModel) TableName() string {
 	return "dummy"
+}
+
+func (d *DummyModel) ToMap() map[string]interface{} {
+	return map[string]interface{}{
+		"name": d.Name,
+	}
 }
 
 func TestSelectBuilder(t *testing.T) {
