@@ -3,12 +3,12 @@ module github.com/0x19/go-clickhouse-model
 go 1.19
 
 require (
+	github.com/davecgh/go-spew v1.1.1
 	github.com/stretchr/testify v1.8.4
 	github.com/vahid-sohrabloo/chconn/v2 v2.2.3
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-faster/city v1.0.1 // indirect
 	github.com/jackc/puddle/v2 v2.1.2 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
