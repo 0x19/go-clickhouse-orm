@@ -1,16 +1,21 @@
-package chorm
+package main
 
 import (
+	"context"
 	"time"
 
+	chorm "github.com/0x19/go-clickhouse-orm"
 	"github.com/0x19/go-clickhouse-orm/models"
 	"github.com/vahid-sohrabloo/chconn/v2/column"
 	"github.com/vahid-sohrabloo/chconn/v2/types"
+	"go.uber.org/zap"
+)
+
+var (
+	dbName = "chorm"
 )
 
 type TestModel struct {
-	models.Model
-
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -78,4 +83,71 @@ func (d *TestModel) GetDeclaration() *models.Declaration {
 			},
 		},
 	}
+}
+
+func main() {
+	logger, err := zap.NewDevelopmentConfig().Build()
+	if err != nil {
+		panic(err)
+	}
+	zap.ReplaceGlobals(logger)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	config := chorm.Config{
+		Host:     "localhost",
+		Port:     9000,
+		Username: "default",
+		Password: "local12345",
+		Database: "unpack",
+		Insecure: true,
+	}
+
+	orm, err := chorm.NewORM(ctx, &config)
+	if err != nil {
+		panic(err)
+	}
+
+	dbBuilder, err := chorm.NewCreateDatabase(ctx, orm, dbName, true, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	zap.L().Info("Create Database SQL", zap.String("sql", dbBuilder.SQL()))
+
+	tblBuilder, err := chorm.NewCreateTable(ctx, orm, &TestModel{}, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	zap.L().Info("Create Table SQL", zap.String("sql", tblBuilder.SQL()))
+
+	model := &TestModel{
+		Name:      "test",
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	record, builder, err := chorm.NewInsert(ctx, orm, model, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	zap.L().Info("Insert SQL", zap.String("sql", builder.SQL()))
+	zap.L().Info("Insert Record", zap.Any("record", record))
+
+	tblDropBuilder, err := chorm.NewDropTable(ctx, orm, &TestModel{}, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	zap.L().Info("Drop Table SQL", zap.String("sql", tblDropBuilder.SQL()))
+
+	dbDropBuilder, err := chorm.NewDropDatabase(ctx, orm, dbName, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	zap.L().Info("Drop Database SQL", zap.String("sql", dbDropBuilder.SQL()))
 }

@@ -3,7 +3,7 @@ package sql
 import (
 	"testing"
 
-	"github.com/0x19/go-clickhouse-model/models"
+	"github.com/0x19/go-clickhouse-orm/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/vahid-sohrabloo/chconn/v2/column"
 )

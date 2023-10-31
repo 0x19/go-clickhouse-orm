@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/0x19/go-clickhouse-model/models"
+	"github.com/0x19/go-clickhouse-orm/models"
 )
 
 type QueryType int8

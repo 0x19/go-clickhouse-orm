@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/0x19/go-clickhouse-model/sql"
+	"github.com/0x19/go-clickhouse-orm/sql"
 	"github.com/vahid-sohrabloo/chconn/v2"
 )
 
