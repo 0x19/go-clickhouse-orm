@@ -3,7 +3,9 @@ package sql
 import (
 	"testing"
 
+	"github.com/0x19/go-clickhouse-model/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/vahid-sohrabloo/chconn/v2/column"
 )
 
 type DummyModel struct {
@@ -14,9 +16,17 @@ func (d *DummyModel) TableName() string {
 	return "dummy"
 }
 
-func (d *DummyModel) ToMap() map[string]interface{} {
-	return map[string]interface{}{
-		"name": d.Name,
+func (d *DummyModel) GetDeclaration() *models.Declaration {
+	return &models.Declaration{}
+}
+
+func (d *DummyModel) ToMap() map[string]column.ColumnBasic {
+	return map[string]column.ColumnBasic{
+		"name": func() column.ColumnBasic {
+			c := column.NewString()
+			c.SetName([]byte("name"))
+			return c
+		}(),
 	}
 }
 

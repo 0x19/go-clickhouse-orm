@@ -1,6 +1,10 @@
 # Golang Clickhouse ORM
 Golang CRUD support for ClickhouseDB
 
+## Design Choices
+
+- As minimal reflection as possible. It looks very sweet to use go struct tags to define model without additional
+hussle, however that includes that for each insert/update/delete/select we need to deal with reflection which will slow down operations quite a lot. 
 
 ## Benchmarks
 

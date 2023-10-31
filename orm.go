@@ -33,6 +33,10 @@ func NewORM(ctx context.Context, cfg *Config) (*ORM, error) {
 	return toReturn, nil
 }
 
+func (o *ORM) GetDatabaseName() string {
+	return o.cfg.Database
+}
+
 func (o *ORM) Connect() error {
 	config, err := chpool.ParseConfig(o.cfg.GetDSN())
 	if err != nil {
@@ -63,8 +67,8 @@ func (o *ORM) GetConfig() *Config {
 	return o.cfg
 }
 
-func (o *ORM) CreateDatabase(ctx context.Context, dbName string, queryOptions *chconn.QueryOptions) (*DatabaseBuilder, error) {
-	return NewCreateDatabase(ctx, o, dbName, queryOptions)
+func (o *ORM) CreateDatabase(ctx context.Context, dbName string, useDb bool, queryOptions *chconn.QueryOptions) (*DatabaseBuilder, error) {
+	return NewCreateDatabase(ctx, o, dbName, useDb, queryOptions)
 }
 
 func (o *ORM) DropDatabase(ctx context.Context, dbName string, queryOptions *chconn.QueryOptions) (*DatabaseBuilder, error) {

@@ -7,7 +7,7 @@ type TableBuilder struct {
 func NewCreateTableBuilder() *TableBuilder {
 	return &TableBuilder{
 		DmlBuilder: DmlBuilder{
-			queryType:  Select,
+			queryType:  CreateTable,
 			subQueries: []*DmlBuilder{},
 		},
 	}

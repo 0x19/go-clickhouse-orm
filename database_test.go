@@ -74,7 +74,7 @@ func TestCreateDatabaseBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(orm)
 
-			builder, err := NewCreateDatabase(tt.ctx, orm, tt.dbName, tt.queryOptions)
+			builder, err := NewCreateDatabase(tt.ctx, orm, tt.dbName, true, tt.queryOptions)
 			if tt.wantErr {
 				tAssert.Error(err)
 				return

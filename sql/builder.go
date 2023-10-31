@@ -22,11 +22,16 @@ const (
 )
 
 type DmlBuilder struct {
-	table      string
-	database   string
-	queryType  QueryType
-	fields     []string
-	subQueries []*DmlBuilder
+	table       string
+	database    string
+	queryType   QueryType
+	engine      string
+	partitionBy string
+	primaryKeys []string
+	orderBy     []string
+	settings    []string
+	fields      []string
+	subQueries  []*DmlBuilder
 }
 
 func (d *DmlBuilder) Model(m models.Model) *DmlBuilder {
@@ -56,10 +61,104 @@ func (d *DmlBuilder) Fields(fields ...string) *DmlBuilder {
 	return d
 }
 
+func (d *DmlBuilder) Engine(engine string) *DmlBuilder {
+	d.engine = engine
+	return d
+}
+
+func (d *DmlBuilder) PartitionBy(partitionBy string) *DmlBuilder {
+	d.partitionBy = partitionBy
+	return d
+}
+
+func (d *DmlBuilder) PrimaryKeys(fields ...string) *DmlBuilder {
+	d.primaryKeys = fields
+	return d
+}
+
+func (d *DmlBuilder) OrderBy(fields ...string) *DmlBuilder {
+	d.orderBy = fields
+	return d
+}
+
+func (d *DmlBuilder) Settings(settings ...string) *DmlBuilder {
+	d.settings = settings
+	return d
+}
+
 func (d *DmlBuilder) Build() (string, error) {
 	var queryBuilder strings.Builder
 
 	switch d.queryType {
+	case CreateDatabase:
+		queryBuilder.WriteString("CREATE DATABASE IF NOT EXISTS ")
+		queryBuilder.WriteString(d.database)
+		queryBuilder.WriteString(";")
+	case DropDatabase:
+		queryBuilder.WriteString("DROP DATABASE IF EXISTS ")
+		queryBuilder.WriteString(d.database)
+		queryBuilder.WriteString(";")
+	case CreateTable:
+		queryBuilder.WriteString("CREATE TABLE IF NOT EXISTS ")
+		queryBuilder.WriteString(d.database + "." + d.table)
+		queryBuilder.WriteString(" (")
+		queryBuilder.WriteString(strings.Join(d.fields, ", "))
+		queryBuilder.WriteString(") ")
+
+		if d.engine != "" {
+			queryBuilder.WriteString("ENGINE = ")
+			queryBuilder.WriteString(d.engine)
+			queryBuilder.WriteString(" ")
+		}
+
+		if d.partitionBy != "" {
+			queryBuilder.WriteString("PARTITION BY ")
+			queryBuilder.WriteString(d.partitionBy)
+			queryBuilder.WriteString(" ")
+		}
+
+		if len(d.primaryKeys) > 0 {
+			queryBuilder.WriteString("PRIMARY KEY ")
+
+			if len(d.primaryKeys) == 1 {
+				queryBuilder.WriteString(d.primaryKeys[0])
+				queryBuilder.WriteString(" ")
+			} else {
+				queryBuilder.WriteString("(")
+				for i, field := range d.primaryKeys {
+					queryBuilder.WriteString(field)
+					if i < len(d.primaryKeys)-1 {
+						queryBuilder.WriteString(", ")
+					}
+				}
+				queryBuilder.WriteString(") ")
+			}
+		}
+
+		if len(d.orderBy) > 0 {
+			queryBuilder.WriteString("ORDER BY ")
+
+			if len(d.orderBy) == 1 {
+				queryBuilder.WriteString(d.orderBy[0])
+				queryBuilder.WriteString(" ")
+			} else {
+				queryBuilder.WriteString("(")
+				for i, field := range d.orderBy {
+					queryBuilder.WriteString(field)
+					if i < len(d.orderBy)-1 {
+						queryBuilder.WriteString(", ")
+					}
+				}
+				queryBuilder.WriteString(") ")
+			}
+		}
+
+		if len(d.settings) > 0 {
+			queryBuilder.WriteString("SETTINGS ")
+			queryBuilder.WriteString(strings.Join(d.settings, ", "))
+		}
+
+		queryBuilder.WriteString(";")
 	case Select:
 		queryBuilder.WriteString("SELECT ")
 
@@ -100,14 +199,6 @@ func (d *DmlBuilder) Build() (string, error) {
 	case Delete:
 		queryBuilder.WriteString("DELETE FROM ")
 		queryBuilder.WriteString(d.table)
-	case CreateDatabase:
-		queryBuilder.WriteString("CREATE DATABASE IF NOT EXISTS ")
-		queryBuilder.WriteString(d.database)
-		queryBuilder.WriteString(";")
-	case DropDatabase:
-		queryBuilder.WriteString("DROP DATABASE IF EXISTS ")
-		queryBuilder.WriteString(d.database)
-		queryBuilder.WriteString(";")
 
 	}
 

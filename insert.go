@@ -37,17 +37,17 @@ func NewInsert[T models.Model](ctx context.Context, orm *ORM, model T, queryOpti
 		modelValue := reflect.ValueOf(model)
 
 		if !modelValue.IsValid() {
-			return model, nil, fmt.Errorf("underlying value of model cannot be nil")
+			return model, nil, fmt.Errorf("model cannot be nil")
 		}
 
 		if modelValue.Kind() == reflect.Ptr && modelValue.IsNil() {
-			return model, nil, fmt.Errorf("underlying value of model cannot be nil")
+			return model, nil, fmt.Errorf("model cannot be nil")
 		}
 	}
 
 	stmtBuilder := sql.NewInsertBuilder()
 	stmtBuilder.Model(model)
-	stmtBuilder.Fields(GetModelKeys(model)...)
+	stmtBuilder.Fields(model.GetDeclaration().GetFieldNames()...)
 
 	builder := &InsertBuilder[T]{
 		ctx:     ctx,

@@ -4,12 +4,78 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/0x19/go-clickhouse-model/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/vahid-sohrabloo/chconn/v2"
+	"github.com/vahid-sohrabloo/chconn/v2/column"
 )
 
-func TestInsertBuilder(t *testing.T) {
+type TestModel struct {
+	models.Model
+
+	Name      string
+	CreatedAt int64
+	UpdatedAt int64
+}
+
+func (d *TestModel) TableName() string {
+	return d.GetDeclaration().TableName
+}
+
+func (d *TestModel) GetDeclaration() *models.Declaration {
+	return &models.Declaration{
+		DatabaseName: "chorm",
+		TableName:    "dummy_model",
+		Engine:       "MergeTree()",
+		PartitionBy:  "toYYYYMM(created_at)",
+		Settings: []string{
+			"index_granularity = 8192",
+		},
+		OrderBy: []string{
+			"created_at",
+		},
+		Fields: map[string]models.Field{
+			"name": {
+				Index:  0,
+				Name:   "name",
+				Type:   "String",
+				GoType: "string",
+				Column: func() column.ColumnBasic {
+					c := column.NewString()
+					c.SetName([]byte("name"))
+					return c
+				}(),
+			},
+			"created_at": {
+				Index:      1,
+				Name:       "created_at",
+				PrimaryKey: true,
+				Type:       "DateTime",
+				GoType:     "time.Time",
+				Column: func() column.ColumnBasic {
+					c := column.New[time.Time]()
+					c.SetName([]byte("created_at"))
+					return c
+				}(),
+			},
+			"updated_at": {
+				Index:  2,
+				Name:   "updated_at",
+				Type:   "DateTime",
+				GoType: "time.Time",
+				Column: func() column.ColumnBasic {
+					c := column.New[time.Time]()
+					c.SetName([]byte("updated_at"))
+					return c
+				}(),
+			},
+		},
+	}
+}
+
+func TestCreateTableBuilder(t *testing.T) {
 	tests := []struct {
 		name          string
 		ctx           context.Context
@@ -77,7 +143,7 @@ func TestInsertBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(dbBuilder)
 
-			record, builder, err := NewInsert(tt.ctx, orm, tt.model, tt.queryOptions)
+			record, builder, err := NewCreateTable(tt.ctx, orm, tt.model, tt.queryOptions)
 			if tt.wantInsertErr {
 				tAssert.Error(err)
 				return
@@ -90,43 +156,14 @@ func TestInsertBuilder(t *testing.T) {
 			fmt.Println("SQL: ", builder.SQL())
 			fmt.Printf("response: %+v \n", record)
 
-			dbBuilder, err = NewDropDatabase(tt.ctx, orm, tt.dbName, tt.queryOptions)
-			if tt.wantDropErr {
-				tAssert.Error(err)
-				return
-			}
+			/* 			dbBuilder, err = NewDropDatabase(tt.ctx, orm, tt.dbName, tt.queryOptions)
+			   			if tt.wantDropErr {
+			   				tAssert.Error(err)
+			   				return
+			   			}
 
-			tAssert.NoError(err)
-			tAssert.NotNil(dbBuilder)
+			   			tAssert.NoError(err)
+			   			tAssert.NotNil(dbBuilder) */
 		})
-	}
-}
-
-func BenchmarkNewInsert(b *testing.B) {
-	ctx := context.TODO()
-	ormConfig := &Config{
-		Host:     "localhost",
-		Port:     9000,
-		Username: "default",
-		Password: "local12345",
-		Database: "unpack",
-		Insecure: true,
-	}
-	model := &TestModel{
-		Name: "test",
-	}
-
-	orm, err := NewORM(ctx, ormConfig)
-	if err != nil {
-		b.Fatalf("Failed to create ORM: %v", err)
-	}
-
-	b.ResetTimer() // Reset the timer to exclude setup time
-
-	for i := 0; i < b.N; i++ {
-		_, _, err := NewInsert(ctx, orm, model, nil)
-		if err != nil {
-			b.Fatalf("Failed to insert: %v", err)
-		}
 	}
 }
