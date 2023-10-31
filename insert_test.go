@@ -125,18 +125,29 @@ func BenchmarkNewInsert(b *testing.B) {
 		Database: "unpack",
 		Insecure: true,
 	}
-	model := &TestModel{
-		Name: "test",
-	}
 
 	orm, err := NewORM(ctx, ormConfig)
 	if err != nil {
 		b.Fatalf("Failed to create ORM: %v", err)
 	}
 
+	if _, err := NewCreateDatabase(ctx, orm, "chorm", true, nil); err != nil {
+		b.Fatalf("Failed to create database: %v", err)
+	}
+
+	if _, err := NewCreateTable(ctx, orm, &TestModel{}, nil); err != nil {
+		b.Fatalf("Failed to create table: %v", err)
+	}
+
 	b.ResetTimer() // Reset the timer to exclude setup time
 
 	for i := 0; i < b.N; i++ {
+		model := &TestModel{
+			Name:      fmt.Sprintf("test_%d", i),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+		}
+
 		_, _, err := NewInsert(ctx, orm, model, nil)
 		if err != nil {
 			b.Fatalf("Failed to insert: %v", err)

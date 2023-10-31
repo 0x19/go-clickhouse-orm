@@ -17,7 +17,7 @@ goarch: amd64
 pkg: github.com/0x19/go-clickhouse-model
 cpu: AMD Ryzen Threadripper 3960X 24-Core Processor 
 BenchmarkNewInsert
-BenchmarkNewInsert-48            7057206               161.4 ns/op           176 B/op          4 allocs/op
+BenchmarkNewInsert-48               1194            942314 ns/op            6493 B/op         61 allocs/op
 PASS
-ok      github.com/0x19/go-clickhouse-model     1.335s
+ok      github.com/0x19/go-clickhouse-model     1.249s
 ```
