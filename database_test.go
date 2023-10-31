@@ -2,7 +2,6 @@ package chorm
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -92,8 +91,6 @@ func TestCreateDatabaseBuilder(t *testing.T) {
 
 			tAssert.NoError(err)
 			tAssert.NotNil(builder)
-
-			fmt.Println("SQL: ", builder.SQL())
 		})
 	}
 }

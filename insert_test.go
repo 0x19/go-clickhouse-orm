@@ -32,8 +32,11 @@ func TestInsertBuilder(t *testing.T) {
 		ctx           context.Context
 		ormConfig     *Config
 		queryOptions  *chconn.QueryOptions
+		dbName        string
 		model         *TestModel
 		wantOrmErr    bool
+		wantCreateErr bool
+		wantDropErr   bool
 		wantInsertErr bool
 	}{
 		{
@@ -48,6 +51,7 @@ func TestInsertBuilder(t *testing.T) {
 				Insecure: true,
 			},
 			wantInsertErr: true,
+			wantCreateErr: true,
 			model:         nil,
 		},
 		{
@@ -64,6 +68,7 @@ func TestInsertBuilder(t *testing.T) {
 			model: &TestModel{
 				Name: "test",
 			},
+			dbName:        "chorm",
 			wantInsertErr: false,
 		},
 	}
@@ -80,6 +85,15 @@ func TestInsertBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(orm)
 
+			dbBuilder, err := NewCreateDatabase(tt.ctx, orm, tt.dbName, tt.queryOptions)
+			if tt.wantCreateErr {
+				tAssert.Error(err)
+				return
+			}
+
+			tAssert.NoError(err)
+			tAssert.NotNil(dbBuilder)
+
 			record, builder, err := NewInsert(tt.ctx, orm, tt.model, tt.queryOptions)
 			if tt.wantInsertErr {
 				tAssert.Error(err)
@@ -92,6 +106,15 @@ func TestInsertBuilder(t *testing.T) {
 
 			fmt.Println("SQL: ", builder.SQL())
 			fmt.Printf("response: %+v \n", record)
+
+			dbBuilder, err = NewDropDatabase(tt.ctx, orm, tt.dbName, tt.queryOptions)
+			if tt.wantDropErr {
+				tAssert.Error(err)
+				return
+			}
+
+			tAssert.NoError(err)
+			tAssert.NotNil(dbBuilder)
 
 			record.ToMap()
 		})
