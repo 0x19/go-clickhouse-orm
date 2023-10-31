@@ -1,10 +1,17 @@
 # Golang Clickhouse ORM
-Golang CRUD support for ClickhouseDB
+
+A robust and efficient ORM (Object-Relational Mapping) for ClickhouseDB, written in Go.
 
 ## Design Choices
 
 - As minimal reflection as possible. It looks very sweet to use go struct tags to define model without additional
 hussle, however that includes that for each insert/update/delete/select we need to deal with reflection which will slow down operations quite a lot. 
+
+## Getting Started
+
+### Installation
+
+Todo...
 
 ## Benchmarks
 
