@@ -153,8 +153,19 @@ func TestCreateTableBuilder(t *testing.T) {
 			tAssert.NotNil(record)
 			tAssert.NotNil(builder)
 
-			fmt.Println("SQL: ", builder.SQL())
-			fmt.Printf("response: %+v \n", record)
+			fmt.Println("Create SQL: ", builder.SQL())
+
+			builder, err = NewDropTable(tt.ctx, orm, tt.model, tt.queryOptions)
+			if tt.wantInsertErr {
+				tAssert.Error(err)
+				return
+			}
+
+			tAssert.NoError(err)
+			tAssert.NotNil(record)
+			tAssert.NotNil(builder)
+
+			fmt.Println("Create SQL: ", builder.SQL())
 
 			/* 			dbBuilder, err = NewDropDatabase(tt.ctx, orm, tt.dbName, tt.queryOptions)
 			   			if tt.wantDropErr {

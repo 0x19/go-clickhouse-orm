@@ -159,6 +159,10 @@ func (d *DmlBuilder) Build() (string, error) {
 		}
 
 		queryBuilder.WriteString(";")
+	case DropTable:
+		queryBuilder.WriteString("DROP TABLE IF EXISTS ")
+		queryBuilder.WriteString(d.database + "." + d.table)
+		queryBuilder.WriteString(";")
 	case Select:
 		queryBuilder.WriteString("SELECT ")
 

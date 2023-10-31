@@ -12,3 +12,12 @@ func NewCreateTableBuilder() *TableBuilder {
 		},
 	}
 }
+
+func NewDropTableBuilder() *TableBuilder {
+	return &TableBuilder{
+		DmlBuilder: DmlBuilder{
+			queryType:  DropTable,
+			subQueries: []*DmlBuilder{},
+		},
+	}
+}
