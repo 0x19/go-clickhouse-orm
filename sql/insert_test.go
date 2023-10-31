@@ -1,4 +1,4 @@
-package dml
+package sql
 
 import (
 	"testing"

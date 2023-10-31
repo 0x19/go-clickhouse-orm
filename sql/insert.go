@@ -1,4 +1,4 @@
-package dml
+package sql
 
 type InsertBuilder struct {
 	DmlBuilder // Embedded struct

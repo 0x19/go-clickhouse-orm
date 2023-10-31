@@ -1,4 +1,4 @@
-package dml
+package sql
 
 import (
 	"fmt"
@@ -14,6 +14,11 @@ const (
 	Insert
 	Update
 	Delete
+	CreateDatabase
+	DropDatabase
+	CreateTable
+	DropTable
+	AlterTable
 )
 
 type DmlBuilder struct {

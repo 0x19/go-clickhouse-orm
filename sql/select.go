@@ -1,4 +1,4 @@
-package dml
+package sql
 
 type SelectBuilder struct {
 	DmlBuilder // Embedded struct

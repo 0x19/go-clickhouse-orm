@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/0x19/go-clickhouse-model/dml"
 	"github.com/0x19/go-clickhouse-model/models"
+	"github.com/0x19/go-clickhouse-model/sql"
 	"github.com/vahid-sohrabloo/chconn/v2"
 	"github.com/vahid-sohrabloo/chconn/v2/column"
 )
@@ -15,7 +15,7 @@ type InsertBuilder[T models.Model] struct {
 	ctx     context.Context
 	orm     *ORM
 	model   T
-	builder *dml.InsertBuilder
+	builder *sql.InsertBuilder
 }
 
 func (b *InsertBuilder[T]) Build() (string, error) {
@@ -45,7 +45,7 @@ func NewInsert[T models.Model](ctx context.Context, orm *ORM, model T, queryOpti
 		}
 	}
 
-	stmtBuilder := dml.NewInsertBuilder()
+	stmtBuilder := sql.NewInsertBuilder()
 	stmtBuilder.Model(model)
 	stmtBuilder.Fields(GetModelKeys(model)...)
 
