@@ -193,7 +193,7 @@ func (d *DmlBuilder) Build() (string, error) {
 		}
 
 		queryBuilder.WriteString("INSERT INTO ")
-		queryBuilder.WriteString(d.table)
+		queryBuilder.WriteString(d.database + "." + d.table)
 		queryBuilder.WriteString(" (")
 		queryBuilder.WriteString(strings.Join(d.fields, ", "))
 		queryBuilder.WriteString(") VALUES")

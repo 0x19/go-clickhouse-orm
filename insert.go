@@ -47,7 +47,19 @@ func NewInsert[T models.Model](ctx context.Context, orm *ORM, model T, queryOpti
 
 	stmtBuilder := sql.NewInsertBuilder()
 	stmtBuilder.Model(model)
-	stmtBuilder.Fields(model.GetDeclaration().GetFieldNames()...)
+	declaration := model.GetDeclaration()
+
+	if declaration == nil {
+		return model, nil, fmt.Errorf("model declaration cannot be nil")
+	}
+
+	if declaration.DatabaseName != "" {
+		stmtBuilder.Database(declaration.DatabaseName)
+	} else {
+		stmtBuilder.Database(orm.GetDatabaseName())
+	}
+
+	stmtBuilder.Fields(declaration.GetFieldNames()...)
 
 	builder := &InsertBuilder[T]{
 		ctx:     ctx,
@@ -56,7 +68,7 @@ func NewInsert[T models.Model](ctx context.Context, orm *ORM, model T, queryOpti
 		builder: stmtBuilder,
 	}
 
-	if err := builder.ExecContext(ctx, queryOptions); err != nil {
+	if err := builder.ExecContext(ctx, queryOptions, declaration.GetPreparedColumns()...); err != nil {
 		return model, builder, err
 	}
 

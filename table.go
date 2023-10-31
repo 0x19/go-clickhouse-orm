@@ -38,18 +38,18 @@ func (b *TableBuilder[T]) SQL() string {
 	return b.builder.String()
 }
 
-func NewCreateTable[T models.Model](ctx context.Context, orm *ORM, model T, queryOptions *chconn.QueryOptions) (T, *TableBuilder[T], error) {
+func NewCreateTable[T models.Model](ctx context.Context, orm *ORM, model T, queryOptions *chconn.QueryOptions) (*TableBuilder[T], error) {
 	// Check if the underlying value of the interface is nil. Unfortunately, it is a T and we cannot
 	// directly check if it's nil due to type missmatch.
 	{
 		modelValue := reflect.ValueOf(model)
 
 		if !modelValue.IsValid() {
-			return model, nil, fmt.Errorf("model cannot be nil")
+			return nil, fmt.Errorf("model cannot be nil")
 		}
 
 		if modelValue.Kind() == reflect.Ptr && modelValue.IsNil() {
-			return model, nil, fmt.Errorf("model cannot be nil")
+			return nil, fmt.Errorf("model cannot be nil")
 		}
 	}
 
@@ -58,7 +58,7 @@ func NewCreateTable[T models.Model](ctx context.Context, orm *ORM, model T, quer
 	declaration := model.GetDeclaration()
 
 	if declaration == nil {
-		return model, nil, fmt.Errorf("model declaration cannot be nil")
+		return nil, fmt.Errorf("model declaration cannot be nil")
 	}
 
 	if declaration.DatabaseName != "" {
@@ -93,10 +93,10 @@ func NewCreateTable[T models.Model](ctx context.Context, orm *ORM, model T, quer
 	}
 
 	if err := builder.Exec(ctx); err != nil {
-		return model, builder, err
+		return builder, err
 	}
 
-	return model, builder, nil
+	return builder, nil
 }
 
 func NewDropTable[T models.Model](ctx context.Context, orm *ORM, model T, queryOptions *chconn.QueryOptions) (*TableBuilder[T], error) {

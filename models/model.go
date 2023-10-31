@@ -88,6 +88,26 @@ func (d *Declaration) GetFieldNames() []string {
 	return names
 }
 
+func (d *Declaration) GetColumns() []column.ColumnBasic {
+	names := make([]column.ColumnBasic, 0, len(d.Fields))
+
+	for _, field := range d.GetFields() {
+		names = append(names, field.Column)
+	}
+
+	return names
+}
+
+func (d *Declaration) GetPreparedColumns() []column.ColumnBasic {
+	names := make([]column.ColumnBasic, 0, len(d.Fields))
+
+	for _, field := range d.GetFields() {
+		names = append(names, field.Column)
+	}
+
+	return names
+}
+
 func (d *Declaration) GetPKFields() []Field {
 	fields := make([]Field, 0, len(d.Fields))
 

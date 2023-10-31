@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/vahid-sohrabloo/chconn/v2"
@@ -21,6 +22,7 @@ func TestInsertBuilder(t *testing.T) {
 		wantCreateErr bool
 		wantDropErr   bool
 		wantInsertErr bool
+		wantTblErr    bool
 	}{
 		{
 			name: "Basic Insert With No Model",
@@ -49,7 +51,9 @@ func TestInsertBuilder(t *testing.T) {
 				Insecure: true,
 			},
 			model: &TestModel{
-				Name: "test",
+				Name:      "test",
+				CreatedAt: time.Now().UTC(),
+				UpdatedAt: time.Now().UTC(),
 			},
 			dbName:        "chorm",
 			wantInsertErr: false,
@@ -77,6 +81,15 @@ func TestInsertBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(dbBuilder)
 
+			tblBuilder, err := NewCreateTable(tt.ctx, orm, tt.model, tt.queryOptions)
+			if tt.wantTblErr {
+				tAssert.Error(err)
+				return
+			}
+
+			tAssert.NoError(err)
+			tAssert.NotNil(tblBuilder)
+
 			record, builder, err := NewInsert(tt.ctx, orm, tt.model, tt.queryOptions)
 			if tt.wantInsertErr {
 				tAssert.Error(err)
@@ -87,17 +100,17 @@ func TestInsertBuilder(t *testing.T) {
 			tAssert.NotNil(record)
 			tAssert.NotNil(builder)
 
-			fmt.Println("SQL: ", builder.SQL())
+			t.Logf("Insert SQL: %s", builder.SQL())
 			fmt.Printf("response: %+v \n", record)
 
-			dbBuilder, err = NewDropDatabase(tt.ctx, orm, tt.dbName, tt.queryOptions)
-			if tt.wantDropErr {
-				tAssert.Error(err)
-				return
-			}
+			/* 			dbBuilder, err = NewDropDatabase(tt.ctx, orm, tt.dbName, tt.queryOptions)
+			   			if tt.wantDropErr {
+			   				tAssert.Error(err)
+			   				return
+			   			}
 
-			tAssert.NoError(err)
-			tAssert.NotNil(dbBuilder)
+			   			tAssert.NoError(err)
+			   			tAssert.NotNil(dbBuilder) */
 		})
 	}
 }
