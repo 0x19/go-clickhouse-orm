@@ -63,6 +63,14 @@ func (o *ORM) GetConfig() *Config {
 	return o.cfg
 }
 
+func (o *ORM) CreateDatabase(ctx context.Context, dbName string, queryOptions *chconn.QueryOptions) (*DatabaseBuilder, error) {
+	return NewCreateDatabase(ctx, o, dbName, queryOptions)
+}
+
+func (o *ORM) DropDatabase(ctx context.Context, dbName string, queryOptions *chconn.QueryOptions) (*DatabaseBuilder, error) {
+	return NewDropDatabase(ctx, o, dbName, queryOptions)
+}
+
 func (o *ORM) Insert(ctx context.Context, model models.Model, queryOptions *chconn.QueryOptions) (models.Model, *InsertBuilder[models.Model], error) {
 	return NewInsert(ctx, o, model, queryOptions)
 }
