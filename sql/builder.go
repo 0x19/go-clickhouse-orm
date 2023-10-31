@@ -23,6 +23,7 @@ const (
 
 type DmlBuilder struct {
 	table      string
+	database   string
 	queryType  QueryType
 	fields     []string
 	subQueries []*DmlBuilder
@@ -30,6 +31,11 @@ type DmlBuilder struct {
 
 func (d *DmlBuilder) Model(m models.Model) *DmlBuilder {
 	d.table = m.TableName()
+	return d
+}
+
+func (d *DmlBuilder) Database(database string) *DmlBuilder {
+	d.database = database
 	return d
 }
 
@@ -94,6 +100,15 @@ func (d *DmlBuilder) Build() (string, error) {
 	case Delete:
 		queryBuilder.WriteString("DELETE FROM ")
 		queryBuilder.WriteString(d.table)
+	case CreateDatabase:
+		queryBuilder.WriteString("CREATE DATABASE IF NOT EXISTS ")
+		queryBuilder.WriteString(d.database)
+		queryBuilder.WriteString(";")
+	case DropDatabase:
+		queryBuilder.WriteString("DROP DATABASE IF EXISTS ")
+		queryBuilder.WriteString(d.database)
+		queryBuilder.WriteString(";")
+
 	}
 
 	return queryBuilder.String(), nil
