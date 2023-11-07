@@ -39,6 +39,11 @@ func (d *DmlBuilder) Model(m models.Model) *DmlBuilder {
 	return d
 }
 
+func (d *DmlBuilder) Table(table string) *DmlBuilder {
+	d.table = table
+	return d
+}
+
 func (d *DmlBuilder) Database(database string) *DmlBuilder {
 	d.database = database
 	return d
@@ -183,7 +188,7 @@ func (d *DmlBuilder) Build() (string, error) {
 		}
 
 		queryBuilder.WriteString(" FROM ")
-		queryBuilder.WriteString(d.table)
+		queryBuilder.WriteString(d.database + "." + d.table)
 
 		queryBuilder.WriteString(";")
 

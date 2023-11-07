@@ -16,32 +16,32 @@ type TestModel struct {
 	UpdatedAt time.Time
 }
 
-func (d *TestModel) TableName() string {
+func (d TestModel) TableName() string {
 	return d.GetDeclaration().TableName
 }
 
-func (d *TestModel) GetNameField() *column.String {
+func (d TestModel) GetNameField() *column.String {
 	c := column.NewString()
 	c.SetName([]byte("name"))
 	c.Append(d.Name)
 	return c
 }
 
-func (d *TestModel) GetCreatedAtField() *column.Date[types.DateTime] {
+func (d TestModel) GetCreatedAtField() *column.Date[types.DateTime] {
 	c := column.NewDate[types.DateTime]()
 	c.SetName([]byte("created_at"))
 	c.Append(d.CreatedAt)
 	return c
 }
 
-func (d *TestModel) GetUpdatedAtField() *column.Date[types.DateTime] {
+func (d TestModel) GetUpdatedAtField() *column.Date[types.DateTime] {
 	c := column.NewDate[types.DateTime]()
 	c.SetName([]byte("updated_at"))
 	c.Append(d.UpdatedAt)
 	return c
 }
 
-func (d *TestModel) GetDeclaration() *models.Declaration {
+func (d TestModel) GetDeclaration() *models.Declaration {
 	return &models.Declaration{
 		DatabaseName: "chorm",
 		TableName:    "dummy_model",
