@@ -6,8 +6,9 @@ import (
 
 	chorm "github.com/0x19/go-clickhouse-orm"
 	"github.com/0x19/go-clickhouse-orm/models"
-	"github.com/vahid-sohrabloo/chconn/v2/column"
-	"github.com/vahid-sohrabloo/chconn/v2/types"
+	"github.com/vahid-sohrabloo/chconn/v3"
+	"github.com/vahid-sohrabloo/chconn/v3/column"
+	"github.com/vahid-sohrabloo/chconn/v3/types"
 	"go.uber.org/zap"
 )
 
@@ -83,6 +84,11 @@ func (d *TestModel) GetDeclaration() *models.Declaration {
 			},
 		},
 	}
+}
+
+func (d *TestModel) ScanRow(row chconn.SelectStmt) error {
+	row.Rows().Scan(&d.Name, &d.CreatedAt, &d.UpdatedAt)
+	return nil
 }
 
 func main() {

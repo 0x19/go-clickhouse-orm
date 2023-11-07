@@ -22,6 +22,7 @@ const (
 )
 
 type DmlBuilder struct {
+	model       models.Model
 	table       string
 	database    string
 	queryType   QueryType
@@ -34,8 +35,13 @@ type DmlBuilder struct {
 	subQueries  []*DmlBuilder
 }
 
+func (d *DmlBuilder) GetModel() models.Model {
+	return d.model
+}
+
 func (d *DmlBuilder) Model(m models.Model) *DmlBuilder {
 	d.table = m.TableName()
+	d.model = m
 	return d
 }
 

@@ -5,7 +5,7 @@ import (
 
 	"github.com/0x19/go-clickhouse-orm/models"
 	"github.com/stretchr/testify/assert"
-	"github.com/vahid-sohrabloo/chconn/v2/column"
+	"github.com/vahid-sohrabloo/chconn/v3"
 )
 
 type DummyModel struct {
@@ -20,14 +20,8 @@ func (d *DummyModel) GetDeclaration() *models.Declaration {
 	return &models.Declaration{}
 }
 
-func (d *DummyModel) ToMap() map[string]column.ColumnBasic {
-	return map[string]column.ColumnBasic{
-		"name": func() column.ColumnBasic {
-			c := column.NewString()
-			c.SetName([]byte("name"))
-			return c
-		}(),
-	}
+func (d *DummyModel) ScanRow(row chconn.SelectStmt) error {
+	return nil
 }
 
 func TestSelectBuilder(t *testing.T) {

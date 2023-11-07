@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/0x19/go-clickhouse-orm/sql"
-	"github.com/vahid-sohrabloo/chconn/v2"
+	"github.com/vahid-sohrabloo/chconn/v3"
 )
 
 type DatabaseBuilder struct {

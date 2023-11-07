@@ -7,8 +7,8 @@ import (
 
 	"github.com/0x19/go-clickhouse-orm/models"
 	"github.com/0x19/go-clickhouse-orm/sql"
-	"github.com/vahid-sohrabloo/chconn/v2"
-	"github.com/vahid-sohrabloo/chconn/v2/column"
+	"github.com/vahid-sohrabloo/chconn/v3"
+	"github.com/vahid-sohrabloo/chconn/v3/column"
 )
 
 type InsertBuilder[T models.Model] struct {

@@ -4,12 +4,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/vahid-sohrabloo/chconn/v2/column"
+	"github.com/vahid-sohrabloo/chconn/v3"
+	"github.com/vahid-sohrabloo/chconn/v3/column"
 )
 
 type Model interface {
 	TableName() string
 	GetDeclaration() *Declaration
+	ScanRow(row chconn.SelectStmt) error
 }
 
 type Field struct {

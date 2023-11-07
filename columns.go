@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/0x19/go-clickhouse-orm/models"
-	"github.com/vahid-sohrabloo/chconn/v2/column"
-	"github.com/vahid-sohrabloo/chconn/v2/types"
+	"github.com/vahid-sohrabloo/chconn/v3/column"
+	"github.com/vahid-sohrabloo/chconn/v3/types"
 )
 
 type Field struct {
@@ -79,19 +79,10 @@ func (s *SelectBuilder[T]) ColumnByType(chType []byte, arrayLevel int, nullable,
 		}
 		return getFixedType(strLen, arrayLevel, nullable, lc)
 	case string(chType) == "Date":
-		if !s.queryOptions.UseGoTime {
-			return column.New[types.Date]().Elem(arrayLevel, nullable, lc), nil
-		}
 		return column.NewDate[types.Date]().Elem(arrayLevel, nullable, lc), nil
 	case string(chType) == "Date32":
-		if !s.queryOptions.UseGoTime {
-			return column.New[types.Date32]().Elem(arrayLevel, nullable, lc), nil
-		}
 		return column.NewDate[types.Date32]().Elem(arrayLevel, nullable, lc), nil
 	case string(chType) == "DateTime" || IsDateTimeWithParam(chType):
-		if !s.queryOptions.UseGoTime {
-			return column.New[types.DateTime]().Elem(arrayLevel, nullable, lc), nil
-		}
 		var params [][]byte
 		if bytes.HasPrefix(chType, []byte("DateTime(")) {
 			params = bytes.Split(chType[len("DateTime("):len(chType)-1], []byte(", "))
@@ -106,9 +97,6 @@ func (s *SelectBuilder[T]) ColumnByType(chType []byte, arrayLevel int, nullable,
 		}
 		return col.Elem(arrayLevel, nullable, lc), nil
 	case IsDateTime64(chType):
-		if !s.queryOptions.UseGoTime {
-			return column.New[types.DateTime64]().Elem(arrayLevel, nullable, lc), nil
-		}
 		params := bytes.Split(chType[DateTime64StrLen:len(chType)-1], []byte(", "))
 		if len(params) == 0 {
 			panic("DateTime64 invalid params")

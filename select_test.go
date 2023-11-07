@@ -2,12 +2,12 @@ package chorm
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/assert"
-	"github.com/vahid-sohrabloo/chconn/v2"
+	"github.com/vahid-sohrabloo/chconn/v3"
 )
 
 func TestSelectBuilder(t *testing.T) {
@@ -83,6 +83,15 @@ func TestSelectBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(dbBuilder)
 
+			tblDropBuilder, err := NewDropTable(tt.ctx, orm, tt.model, tt.queryOptions)
+			if tt.wantTblErr {
+				tAssert.Error(err)
+				return
+			}
+
+			tAssert.NoError(err)
+			tAssert.NotNil(tblDropBuilder)
+
 			tblBuilder, err := NewCreateTable(tt.ctx, orm, tt.model, tt.queryOptions)
 			if tt.wantTblErr {
 				tAssert.Error(err)
@@ -92,19 +101,27 @@ func TestSelectBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(tblBuilder)
 
-			record, insertBuilder, err := NewInsert(tt.ctx, orm, tt.model, tt.queryOptions)
-			if tt.wantInsertErr {
-				tAssert.Error(err)
-				return
+			wantRecords := 10
+
+			for i := 0; i < wantRecords; i++ {
+				model := *tt.model
+				model.Name = fmt.Sprintf("%s_%d", tt.model.Name, i)
+				model.CreatedAt = time.Now().UTC()
+				model.UpdatedAt = time.Now().UTC()
+				record, insertBuilder, err := NewInsert(tt.ctx, orm, &model, tt.queryOptions)
+				if tt.wantInsertErr {
+					tAssert.Error(err)
+					return
+				}
+
+				tAssert.NoError(err)
+				tAssert.NotNil(record)
+				tAssert.NotNil(insertBuilder)
+
+				t.Logf("Insert SQL: %s", insertBuilder.SQL())
 			}
 
-			tAssert.NoError(err)
-			tAssert.NotNil(record)
-			tAssert.NotNil(insertBuilder)
-
-			t.Logf("Insert SQL: %s", insertBuilder.SQL())
-
-			instance, err := NewSelect[TestModel](tt.ctx, orm, tt.queryOptions)
+			instance, err := NewSelect[*TestModel](tt.ctx, orm, tt.queryOptions)
 			if tt.wantSelectErr {
 				tAssert.Error(err)
 				return
@@ -113,17 +130,13 @@ func TestSelectBuilder(t *testing.T) {
 			tAssert.NoError(err)
 			tAssert.NotNil(instance)
 
-			var records []TestModel
-
 			instance.Database(tt.dbName)
-			instance.Select("*")
 
 			t.Logf("Select SQL: %s", instance.SQL())
 
-			err = instance.Scan(tt.ctx, tt.queryOptions, records)
+			records, err := instance.Scan(tt.ctx, tt.queryOptions)
 			tAssert.NoError(err)
-
-			spew.Dump(records)
+			tAssert.Equal(wantRecords, len(records))
 		})
 	}
 }

@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/0x19/go-clickhouse-orm/models"
-	"github.com/vahid-sohrabloo/chconn/v2"
-	"github.com/vahid-sohrabloo/chconn/v2/chpool"
+	"github.com/vahid-sohrabloo/chconn/v3"
+	"github.com/vahid-sohrabloo/chconn/v3/chpool"
 )
 
 type ORM struct {

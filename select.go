@@ -7,9 +7,9 @@ import (
 
 	"github.com/0x19/go-clickhouse-orm/models"
 	"github.com/0x19/go-clickhouse-orm/sql"
-	"github.com/vahid-sohrabloo/chconn/v2"
-	"github.com/vahid-sohrabloo/chconn/v2/chpool"
-	"github.com/vahid-sohrabloo/chconn/v2/column"
+	"github.com/vahid-sohrabloo/chconn/v3"
+	"github.com/vahid-sohrabloo/chconn/v3/chpool"
+	"github.com/vahid-sohrabloo/chconn/v3/column"
 )
 
 type SelectBuilder[T models.Model] struct {
@@ -36,29 +36,52 @@ func (s *SelectBuilder[T]) SQL() string {
 	return s.SelectBuilder.String()
 }
 
-func (b *SelectBuilder[T]) One(ctx context.Context, queryOptions *chconn.QueryOptions, record T) error {
+func (s *SelectBuilder[T]) One(ctx context.Context, queryOptions *chconn.QueryOptions, record T) error {
 	if queryOptions != nil {
-		b.queryOptions = queryOptions
+		s.queryOptions = queryOptions
 	}
 
 	return nil
 }
 
-func (b *SelectBuilder[T]) Scan(ctx context.Context, queryOptions *chconn.QueryOptions, records []T) error {
-	if queryOptions != nil {
-		b.queryOptions = queryOptions
+func (s *SelectBuilder[T]) Scan(ctx context.Context, queryOptions *chconn.QueryOptions) ([]T, error) {
+	var toReturn []T
+
+	stmt, err := s.orm.GetConn().SelectWithOption(ctx, s.SQL(), queryOptions, s.GetModel().GetDeclaration().GetPreparedColumns()...)
+	if err != nil {
+		return toReturn, err
+	}
+	defer stmt.Close()
+
+	for stmt.Next() {
+		fmt.Println("next")
+		elm := reflect.TypeOf((*T)(nil)).Elem()
+		record := reflect.New(elm.Elem()).Interface().(T)
+		if err := record.ScanRow(stmt); err != nil {
+			return toReturn, fmt.Errorf(
+				"error scanning row into model `%T`: %w",
+				elm.Name(),
+				err,
+			)
+		}
+
+		toReturn = append(toReturn, record)
 	}
 
-	return nil
+	if stmt.Err() != nil {
+		return toReturn, stmt.Err()
+	}
+
+	return toReturn, nil
 }
 
 func NewSelect[T models.Model](ctx context.Context, orm *ORM, queryOptions *chconn.QueryOptions) (*SelectBuilder[T], error) {
 	stmtBuilder := sql.NewSelectBuilder()
 	stmtBuilder.Database(orm.GetDatabaseName())
+	stmtBuilder.Select("*") // Initially select all... this can be overridden later.
 
-	// Use reflection to create a new instance of T.
 	tType := reflect.TypeOf((*T)(nil)).Elem()
-	instancePtr := reflect.New(tType).Interface()
+	instancePtr := reflect.New(tType.Elem()).Interface()
 
 	// Assert that the created instance satisfies the models.Model interface.
 	modelInstance, ok := instancePtr.(models.Model)

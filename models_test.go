@@ -4,8 +4,9 @@ import (
 	"time"
 
 	"github.com/0x19/go-clickhouse-orm/models"
-	"github.com/vahid-sohrabloo/chconn/v2/column"
-	"github.com/vahid-sohrabloo/chconn/v2/types"
+	"github.com/vahid-sohrabloo/chconn/v3"
+	"github.com/vahid-sohrabloo/chconn/v3/column"
+	"github.com/vahid-sohrabloo/chconn/v3/types"
 )
 
 type TestModel struct {
@@ -16,32 +17,35 @@ type TestModel struct {
 	UpdatedAt time.Time
 }
 
-func (d TestModel) TableName() string {
+func (d *TestModel) TableName() string {
 	return d.GetDeclaration().TableName
 }
 
-func (d TestModel) GetNameField() *column.String {
+func (d *TestModel) GetNameField() column.ColumnBasic {
 	c := column.NewString()
+	c.SetType([]byte("String"))
 	c.SetName([]byte("name"))
 	c.Append(d.Name)
 	return c
 }
 
-func (d TestModel) GetCreatedAtField() *column.Date[types.DateTime] {
+func (d *TestModel) GetCreatedAtField() column.ColumnBasic {
 	c := column.NewDate[types.DateTime]()
+	c.SetType([]byte("DateTime"))
 	c.SetName([]byte("created_at"))
 	c.Append(d.CreatedAt)
 	return c
 }
 
-func (d TestModel) GetUpdatedAtField() *column.Date[types.DateTime] {
+func (d *TestModel) GetUpdatedAtField() *column.Date[types.DateTime] {
 	c := column.NewDate[types.DateTime]()
+	c.SetType([]byte("DateTime"))
 	c.SetName([]byte("updated_at"))
 	c.Append(d.UpdatedAt)
 	return c
 }
 
-func (d TestModel) GetDeclaration() *models.Declaration {
+func (d *TestModel) GetDeclaration() *models.Declaration {
 	return &models.Declaration{
 		DatabaseName: "chorm",
 		TableName:    "dummy_model",
@@ -78,4 +82,12 @@ func (d TestModel) GetDeclaration() *models.Declaration {
 			},
 		},
 	}
+}
+
+func (d *TestModel) ScanRow(stmt chconn.SelectStmt) error {
+	if err := stmt.Rows().Scan(&d.Name, &d.CreatedAt, &d.UpdatedAt); err != nil {
+		return err
+	}
+
+	return nil
 }
