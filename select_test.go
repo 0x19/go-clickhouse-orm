@@ -121,6 +121,8 @@ func TestSelectBuilder(t *testing.T) {
 				t.Logf("Insert SQL: %s", insertBuilder.SQL())
 			}
 
+			time.Sleep(3 * time.Second)
+
 			instance, err := NewSelect[*TestModel](tt.ctx, orm, tt.queryOptions)
 			if tt.wantSelectErr {
 				tAssert.Error(err)

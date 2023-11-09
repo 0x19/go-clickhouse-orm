@@ -54,7 +54,6 @@ func (s *SelectBuilder[T]) Scan(ctx context.Context, queryOptions *chconn.QueryO
 	defer stmt.Close()
 
 	for stmt.Next() {
-		fmt.Println("next")
 		elm := reflect.TypeOf((*T)(nil)).Elem()
 		record := reflect.New(elm.Elem()).Interface().(T)
 		if err := record.ScanRow(stmt); err != nil {
