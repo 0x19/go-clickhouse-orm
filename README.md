@@ -1,6 +1,6 @@
 # Golang Clickhouse ORM
 
-A robust and efficient ORM (Object-Relational Mapping) for ClickhouseDB, written in Go.
+Playground, do not use this code yet... It works partially.
 
 ## Design Choices
 
