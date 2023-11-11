@@ -10,9 +10,11 @@ import (
 )
 
 type ORM struct {
-	ctx context.Context
-	cfg *Config
-	db  chpool.Pool
+	ctx      context.Context
+	cfg      *Config
+	db       chpool.Pool
+	manager  *models.Manager
+	migrator *Migrator
 }
 
 func NewORM(ctx context.Context, cfg *Config) (*ORM, error) {
@@ -24,13 +26,26 @@ func NewORM(ctx context.Context, cfg *Config) (*ORM, error) {
 		return nil, err
 	}
 
-	toReturn := &ORM{ctx: ctx, cfg: cfg}
+	manager := models.NewManager(&models.ManagerConfig{
+		DatabaseName: cfg.Database,
+	})
+
+	toReturn := &ORM{ctx: ctx, cfg: cfg, manager: manager}
+	toReturn.migrator = NewMigrator(toReturn)
 
 	if err := toReturn.Connect(); err != nil {
 		return nil, err
 	}
 
 	return toReturn, nil
+}
+
+func (o *ORM) GetMigrator() *Migrator {
+	return o.migrator
+}
+
+func (o *ORM) GetManager() *models.Manager {
+	return o.manager
 }
 
 func (o *ORM) GetDatabaseName() string {
