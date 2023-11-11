@@ -32,6 +32,22 @@ func TestMigrator(t *testing.T) {
 	err = migrator.Setup(ctx, nil)
 	tAssert.NoError(err)
 
+	err = migrator.RegisterMigration(
+		"some-name",
+		func(ctx context.Context, orm *ORM, migrator *Migrator) error {
+			return nil
+		},
+		func(ctx context.Context, orm *ORM, migrator *Migrator) error {
+			return nil
+		},
+	)
+	tAssert.NoError(err)
+
+	tAssert.Equal(1, len(migrator.GetUpMigrationNames()))
+	tAssert.Equal(1, len(migrator.GetDownMigrationNames()))
+	tAssert.Equal(1, len(migrator.GetUpMigrations()))
+	tAssert.Equal(1, len(migrator.GetDownMigrations()))
+
 	err = migrator.Destroy(ctx, nil)
 	tAssert.NoError(err)
 }

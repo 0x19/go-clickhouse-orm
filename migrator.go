@@ -2,6 +2,7 @@ package chorm
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/0x19/go-clickhouse-orm/models"
@@ -29,17 +30,92 @@ func (m *Migration) Settings() []string {
 }
 
 type Migrator struct {
-	orm *ORM
+	orm  *ORM
+	up   map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error
+	down map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error
 }
 
 func NewMigrator(orm *ORM) (*Migrator, error) {
-
 	// We need to first register the migration model for the ORM to function correctly.
 	if err := orm.GetManager().RegisterModel(&Migration{}); err != nil {
 		return nil, err
 	}
 
-	return &Migrator{orm: orm}, nil
+	return &Migrator{
+		orm:  orm,
+		up:   make(map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error),
+		down: make(map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error),
+	}, nil
+}
+
+func (m *Migrator) GetUpMigrations() map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error {
+	return m.up
+}
+
+func (m *Migrator) GetDownMigrations() map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error {
+	return m.up
+}
+
+func (m *Migrator) GetUpMigrationNames() []string {
+	toReturn := make([]string, 0, len(m.up))
+	for name := range m.up {
+		toReturn = append(toReturn, name)
+	}
+	return toReturn
+}
+
+func (m *Migrator) GetDownMigrationNames() []string {
+	toReturn := make([]string, 0, len(m.down))
+	for name := range m.down {
+		toReturn = append(toReturn, name)
+	}
+	return toReturn
+}
+
+func (m *Migrator) RegisterMigration(
+	name string,
+	up func(ctx context.Context, orm *ORM, migrator *Migrator) error,
+	down func(ctx context.Context, orm *ORM, migrator *Migrator) error,
+) error {
+	if _, ok := m.up[name]; ok {
+		return fmt.Errorf("migration with name %s already exists", name)
+	}
+
+	m.up[name] = up
+	m.down[name] = down
+	return nil
+}
+
+func (m *Migrator) Migrate(ctx context.Context, queryOptions *chconn.QueryOptions) error {
+	for name, up := range m.up {
+		// Check if the migration has already been applied.
+
+		// Apply the migration.
+		if err := up(ctx, m.orm, m); err != nil {
+			return err
+		}
+
+		// Create a new migration record.
+		migration := &Migration{
+			UUID:      uuid.New(),
+			Name:      name,
+			Migrated:  true,
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+		}
+
+		if _, _, err := m.orm.Insert(ctx, migration, queryOptions); err != nil {
+			return err
+		}
+
+		zap.L().Info("Successfully migrated", zap.String("migration", name))
+	}
+
+	return nil
+}
+
+func (m *Migrator) Rollback(ctx context.Context, queryOptions *chconn.QueryOptions) error {
+	return nil
 }
 
 func (m *Migrator) Setup(ctx context.Context, queryOptions *chconn.QueryOptions) error {
