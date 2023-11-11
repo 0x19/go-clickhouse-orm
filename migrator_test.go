@@ -25,4 +25,13 @@ func TestMigrator(t *testing.T) {
 
 	tAssert.NoError(err)
 	tAssert.NotNil(orm)
+
+	migrator := orm.GetMigrator()
+	tAssert.NotNil(migrator)
+
+	err = migrator.Setup(ctx, nil)
+	tAssert.NoError(err)
+
+	err = migrator.Destroy(ctx, nil)
+	tAssert.NoError(err)
 }

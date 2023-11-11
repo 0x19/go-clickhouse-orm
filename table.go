@@ -9,6 +9,7 @@ import (
 	"github.com/0x19/go-clickhouse-orm/sql"
 	"github.com/vahid-sohrabloo/chconn/v3"
 	"github.com/vahid-sohrabloo/chconn/v3/column"
+	"go.uber.org/zap"
 )
 
 type TableBuilder[T models.Model] struct {
@@ -55,7 +56,10 @@ func NewCreateTable[T models.Model](ctx context.Context, orm *ORM, model T, quer
 
 	stmtBuilder := sql.NewCreateTableBuilder()
 	stmtBuilder.Model(model)
-	declaration := model.GetDeclaration()
+	declaration, err := orm.GetManager().GetDeclaration(model)
+	if err != nil {
+		return nil, err
+	}
 
 	if declaration == nil {
 		return nil, fmt.Errorf("model declaration cannot be nil")
@@ -92,6 +96,8 @@ func NewCreateTable[T models.Model](ctx context.Context, orm *ORM, model T, quer
 		builder: stmtBuilder,
 	}
 
+	zap.L().Debug("Create table statement", zap.String("sql", builder.SQL()))
+
 	if err := builder.Exec(ctx); err != nil {
 		return builder, err
 	}
@@ -116,7 +122,10 @@ func NewDropTable[T models.Model](ctx context.Context, orm *ORM, model T, queryO
 
 	stmtBuilder := sql.NewDropTableBuilder()
 	stmtBuilder.Model(model)
-	declaration := model.GetDeclaration()
+	declaration, err := orm.GetManager().GetDeclaration(model)
+	if err != nil {
+		return nil, err
+	}
 
 	if declaration == nil {
 		return nil, fmt.Errorf("model declaration cannot be nil")

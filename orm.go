@@ -31,7 +31,12 @@ func NewORM(ctx context.Context, cfg *Config) (*ORM, error) {
 	})
 
 	toReturn := &ORM{ctx: ctx, cfg: cfg, manager: manager}
-	toReturn.migrator = NewMigrator(toReturn)
+
+	migrator, err := NewMigrator(toReturn)
+	if err != nil {
+		return nil, err
+	}
+	toReturn.migrator = migrator
 
 	if err := toReturn.Connect(); err != nil {
 		return nil, err
