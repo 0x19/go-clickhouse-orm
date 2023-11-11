@@ -47,6 +47,10 @@ func (d *TestModel) GetUpdatedAtField() *column.Date[types.DateTime] {
 	return c
 }
 
+func (d *TestModel) Settings() []string {
+	return []string{}
+}
+
 func (d *TestModel) GetDeclaration() *models.Declaration {
 	return &models.Declaration{
 		DatabaseName: "chorm",

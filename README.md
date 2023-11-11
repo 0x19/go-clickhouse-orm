@@ -4,8 +4,7 @@ Playground, do not use this code yet... It works partially.
 
 ## Design Choices
 
-- As minimal reflection as possible. It looks very sweet to use go struct tags to define model without additional
-hussle, however that includes that for each insert/update/delete/select we need to deal with reflection which will slow down operations quite a lot. 
+- Reflection caching. Reflection is slow, so we cache it by building reflection manager that is initialized only once and then used for all operations. On this way we can avoid reflection on every insert, select, update, delete operation while still keeping the code clean and simple.
 
 ## Getting Started
 

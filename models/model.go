@@ -1,7 +1,7 @@
 package models
 
 import (
-	"sort"
+	"reflect"
 	"strings"
 
 	"github.com/vahid-sohrabloo/chconn/v3"
@@ -10,20 +10,22 @@ import (
 
 type Model interface {
 	TableName() string
+	Settings() []string
 	GetDeclaration() *Declaration
 	ScanRow(row chconn.SelectStmt) error
 }
 
 type Field struct {
-	Index      int16 // Used for sorting and ordering algorithm
-	Name       string
-	PrimaryKey bool
-	Type       string
-	Nullable   bool
-	Default    string
-	Comment    string
-	Column     column.ColumnBasic
-	GoType     interface{}
+	Index       int16 // Used for sorting and ordering algorithm
+	Name        string
+	PrimaryKey  bool
+	Type        string
+	Nullable    bool
+	Default     string
+	Comment     string
+	Column      column.ColumnBasic
+	ReflectType reflect.Type
+	GoType      interface{}
 }
 
 func (f Field) GetDDL() string {
@@ -48,76 +50,4 @@ func (f Field) GetDDL() string {
 	}
 
 	return ddlBuilder.String()
-}
-
-type Declaration struct {
-	DatabaseName string
-	TableName    string
-	Engine       string
-	PartitionBy  string
-	Settings     []string
-	OrderBy      []string
-	Fields       map[string]Field
-}
-
-func (d *Declaration) GetField(name string) (Field, bool) {
-	field, ok := d.Fields[name]
-	return field, ok
-}
-
-func (d *Declaration) GetFields() []Field {
-	fields := make([]Field, 0, len(d.Fields))
-
-	for _, field := range d.Fields {
-		fields = append(fields, field)
-	}
-
-	// Sort fields by name
-	sort.Slice(fields, func(i, j int) bool {
-		return fields[i].Index < fields[j].Index
-	})
-
-	return fields
-}
-
-func (d *Declaration) GetFieldNames() []string {
-	names := make([]string, 0, len(d.Fields))
-
-	for _, field := range d.GetFields() {
-		names = append(names, field.Name)
-	}
-
-	return names
-}
-
-func (d *Declaration) GetColumns() []column.ColumnBasic {
-	names := make([]column.ColumnBasic, 0, len(d.Fields))
-
-	for _, field := range d.GetFields() {
-		names = append(names, field.Column)
-	}
-
-	return names
-}
-
-func (d *Declaration) GetPreparedColumns() []column.ColumnBasic {
-	names := make([]column.ColumnBasic, 0, len(d.Fields))
-
-	for _, field := range d.GetFields() {
-		names = append(names, field.Column)
-	}
-
-	return names
-}
-
-func (d *Declaration) GetPKFields() []Field {
-	fields := make([]Field, 0, len(d.Fields))
-
-	for _, field := range d.GetFields() {
-		if field.PrimaryKey {
-			fields = append(fields, field)
-		}
-	}
-
-	return fields
 }
