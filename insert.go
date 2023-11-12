@@ -47,7 +47,11 @@ func NewInsert[T models.Model](ctx context.Context, orm *ORM, model T, queryOpti
 
 	stmtBuilder := sql.NewInsertBuilder()
 	stmtBuilder.Model(model)
-	declaration := model.GetDeclaration()
+
+	declaration, err := orm.GetManager().GetDeclaration(model)
+	if err != nil {
+		return model, nil, err
+	}
 
 	if declaration == nil {
 		return model, nil, fmt.Errorf("model declaration cannot be nil")

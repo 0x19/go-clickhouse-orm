@@ -43,11 +43,11 @@ func TestMigrator(t *testing.T) {
 	)
 	tAssert.NoError(err)
 
-	tAssert.Equal(1, len(migrator.GetUpMigrationNames()))
-	tAssert.Equal(1, len(migrator.GetDownMigrationNames()))
-	tAssert.Equal(1, len(migrator.GetUpMigrations()))
-	tAssert.Equal(1, len(migrator.GetDownMigrations()))
+	tAssert.Equal(1, len(migrator.GetMigrations()))
 
-	err = migrator.Destroy(ctx, nil)
+	err = migrator.Migrate(ctx, nil)
 	tAssert.NoError(err)
+
+	//err = migrator.Destroy(ctx, nil)
+	//tAssert.NoError(err)
 }

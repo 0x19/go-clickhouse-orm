@@ -29,10 +29,15 @@ func (m *Migration) Settings() []string {
 	return []string{}
 }
 
+type MigrationRecord struct {
+	migration string
+	up        func(ctx context.Context, orm *ORM, migrator *Migrator) error
+	down      func(ctx context.Context, orm *ORM, migrator *Migrator) error
+}
+
 type Migrator struct {
-	orm  *ORM
-	up   map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error
-	down map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error
+	orm        *ORM
+	migrations map[string]MigrationRecord
 }
 
 func NewMigrator(orm *ORM) (*Migrator, error) {
@@ -42,34 +47,13 @@ func NewMigrator(orm *ORM) (*Migrator, error) {
 	}
 
 	return &Migrator{
-		orm:  orm,
-		up:   make(map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error),
-		down: make(map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error),
+		orm:        orm,
+		migrations: make(map[string]MigrationRecord, 0),
 	}, nil
 }
 
-func (m *Migrator) GetUpMigrations() map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error {
-	return m.up
-}
-
-func (m *Migrator) GetDownMigrations() map[string]func(ctx context.Context, orm *ORM, migrator *Migrator) error {
-	return m.up
-}
-
-func (m *Migrator) GetUpMigrationNames() []string {
-	toReturn := make([]string, 0, len(m.up))
-	for name := range m.up {
-		toReturn = append(toReturn, name)
-	}
-	return toReturn
-}
-
-func (m *Migrator) GetDownMigrationNames() []string {
-	toReturn := make([]string, 0, len(m.down))
-	for name := range m.down {
-		toReturn = append(toReturn, name)
-	}
-	return toReturn
+func (m *Migrator) GetMigrations() map[string]MigrationRecord {
+	return m.migrations
 }
 
 func (m *Migrator) RegisterMigration(
@@ -77,21 +61,25 @@ func (m *Migrator) RegisterMigration(
 	up func(ctx context.Context, orm *ORM, migrator *Migrator) error,
 	down func(ctx context.Context, orm *ORM, migrator *Migrator) error,
 ) error {
-	if _, ok := m.up[name]; ok {
+	if _, ok := m.migrations[name]; ok {
 		return fmt.Errorf("migration with name %s already exists", name)
 	}
 
-	m.up[name] = up
-	m.down[name] = down
+	m.migrations[name] = MigrationRecord{
+		migration: name,
+		up:        up,
+		down:      down,
+	}
+
 	return nil
 }
 
 func (m *Migrator) Migrate(ctx context.Context, queryOptions *chconn.QueryOptions) error {
-	for name, up := range m.up {
+	for name, migration := range m.migrations {
 		// Check if the migration has already been applied.
 
 		// Apply the migration.
-		if err := up(ctx, m.orm, m); err != nil {
+		if err := migration.up(ctx, m.orm, m); err != nil {
 			return err
 		}
 
@@ -108,7 +96,7 @@ func (m *Migrator) Migrate(ctx context.Context, queryOptions *chconn.QueryOption
 			return err
 		}
 
-		zap.L().Info("Successfully migrated", zap.String("migration", name))
+		zap.L().Debug("Successfully migrated", zap.String("migration", name))
 	}
 
 	return nil
@@ -123,13 +111,13 @@ func (m *Migrator) Setup(ctx context.Context, queryOptions *chconn.QueryOptions)
 		return err
 	}
 
-	zap.L().Info("Successfully created database", zap.String("database", m.orm.GetDatabaseName()))
+	zap.L().Debug("Successfully created database", zap.String("database", m.orm.GetDatabaseName()))
 
 	if _, err := NewCreateTable(ctx, m.orm, &Migration{}, queryOptions); err != nil {
 		return err
 	}
 
-	zap.L().Info("Successfully created migrations table")
+	zap.L().Debug("Successfully created migrations table")
 
 	return nil
 }
@@ -139,7 +127,7 @@ func (m *Migrator) Destroy(ctx context.Context, queryOptions *chconn.QueryOption
 		return err
 	}
 
-	zap.L().Info("Successfully created migrations table")
+	zap.L().Debug("Successfully created migrations table")
 
 	return nil
 }
